@@ -1,0 +1,43 @@
+# ── Dataset images & labels (too large for GitHub) ───────────────────────────
+data/raw/
+data/images/
+data/labels/
+data/data_v3/images/
+data/data_v3/labels/
+*.cache
+
+# ── Model weights (large binaries — store on Drive/HuggingFace) ──────────────
+models/
+runs/
+*.pt
+*.onnx
+*.torchscript
+
+# ── Logs ─────────────────────────────────────────────────────────────────────
+*.log
+logs/
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.pyo
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+.eggs/
+
+# ── Mac ──────────────────────────────────────────────────────────────────────
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# ── Jupyter ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
+
+# ── Misc ─────────────────────────────────────────────────────────────────────
+.env
+*.tmp

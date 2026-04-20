@@ -1,0 +1,18 @@
+# FathomNet v3 — expanded download
+path: /Users/krishnareddy/ocean-species-detector/data/data_v3
+train: images/train
+val:   images/val
+test:  images/test
+
+nc: 10
+names:
+  0: Lutjanus campechanus
+  1: Stenotomus caprinus
+  2: Rhomboplites aurorubens
+  3: Strongylocentrotus fragilis
+  4: Ptereleotris
+  5: Pagrus pagrus
+  6: Chromis
+  7: Epinephelus morio
+  8: Ophiuroidea
+  9: Balistes capriscus

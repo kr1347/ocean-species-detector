@@ -1,0 +1,17 @@
+ultralytics>=8.0.0       # YOLOv8 - detection + classification
+fathomnet>=0.8.0         # FathomNet Python client for dataset access
+torch>=2.0.0
+torchvision>=0.15.0
+Pillow>=9.0.0
+opencv-python>=4.7.0
+numpy>=1.24.0
+pandas>=2.0.0
+matplotlib>=3.7.0
+scikit-learn>=1.2.0
+tqdm>=4.65.0
+PyYAML>=6.0
+fastapi>=0.100.0         # inference API (Step 4)
+uvicorn>=0.23.0
+python-multipart>=0.0.6
+claude-agent-sdk>=0.0.14 # Claude-powered agents (agents/)
+anyio>=4.0.0             # async runtime for agent SDK
