@@ -1,22 +1,29 @@
 """
-Fine-tune v3: YOLOv8m + expanded dataset + targeted fixes for weak classes.
+Experiment 3: YOLOv8m with expanded dataset and targeted augmentation for low-AP classes.
 
-Changes from v2:
-  1. YOLOv8m backbone    — 25M params (vs 11M). Biggest accuracy lever remaining.
-  2. Expanded dataset    — 600/species + all Ptereleotris/Ophiuroidea images
-  3. imgsz=896           — up from 800; captures more fine detail
-  4. copy_paste=0.5      — up from 0.3; harder push for weak small-fish classes
-  5. degrees=10          — rotation aug; fish appear at any orientation
-  6. scale=0.7           — random scale; helps small-object generalization
-  7. cls=0.7             — up from 0.5; penalizes misclassification harder
-                           (helps distinguish similar-looking species)
-  8. 150 epochs + patience=40 — more room to converge on larger dataset
-  9. Cosine LR + warmup  — smoother convergence
+Modifications from Experiment 2:
+    1. YOLOv8m backbone (25M params vs 11M) — deeper C2f blocks and wider feature maps
+       provide greater representational capacity for fine-grained species discrimination.
+    2. Expanded dataset — 600 images per common species; Ptereleotris and Ophiuroidea
+       uncapped (7,686 and 3,061 images respectively) to address their low AP scores
+       (0.331 and 0.376 in Experiment 2).
+    3. imgsz=896 — higher resolution improves localization of morphologically small
+       species with limited pixel coverage at standard resolution.
+    4. copy_paste=0.5 — increased copy-paste rate (Ghiasi et al., 2021) to further
+       augment rare-class representation in training batches.
+    5. degrees=10 — rotational augmentation (±10°) accounts for the orientation-
+       invariant nature of deep-sea organism detection in ROV footage.
+    6. scale=0.7 — multi-scale training improves robustness to size variation across
+       species and depth-dependent perspective distortion.
+    7. cls=0.7 — elevated classification loss weight penalizes inter-species confusion
+       more strongly, beneficial for morphologically similar species pairs.
+    8. cos_lr=True — cosine annealing schedule (Loshchilov & Hutter, 2017) provides
+       smoother convergence than step or linear decay over 150 epochs.
 
-Expected: mAP@50 > 0.82, mAP@50-95 > 0.58
+Target: mAP@50 > 0.82, mAP@50-95 > 0.58
 
 Run:
-  PYTORCH_ENABLE_MPS_FALLBACK=1 python train_v3.py
+    PYTORCH_ENABLE_MPS_FALLBACK=1 python train_v3.py
 """
 
 import os
@@ -50,9 +57,6 @@ def main():
     if not verify_dataset(data_yaml):
         return
 
-    # YOLOv8m — 25M params. The jump from s→m is larger than n→s in practice.
-    # YOLOv8l (43M) is the next step but needs more VRAM; m is the sweet spot
-    # for M1 Pro 16GB.
     model = YOLO("yolov8m.pt")
     print(f"Parameters: {sum(p.numel() for p in model.model.parameters()):,}")
 
@@ -62,47 +66,40 @@ def main():
         name="fathomnet_v3",
         device="mps",
 
-        # ── Core ──────────────────────────────────────────────────────────────
         epochs=150,
-        batch=8,            # YOLOv8m at imgsz=896 needs smaller batch on 16GB
-        imgsz=896,          # up from 800; better small-object coverage
+        batch=8,
+        imgsz=896,
         patience=40,
         save_period=10,
 
-        # ── Optimizer ─────────────────────────────────────────────────────────
         optimizer="AdamW",
-        lr0=0.0008,         # slightly lower for larger model — more stable
+        lr0=0.0008,
         lrf=0.01,
         weight_decay=0.0005,
         warmup_epochs=5,
-        cos_lr=True,        # cosine LR schedule — smoother than linear decay
+        cos_lr=True,
 
-        # ── Loss weights ──────────────────────────────────────────────────────
-        # box: weight on bounding box regression loss
-        # cls: weight on classification loss — increasing this penalizes
-        #      misclassifying species harder (helps Ptereleotris vs Chromis confusion)
-        # dfl: distribution focal loss weight
+        # Loss weights
         box=7.5,
-        cls=0.7,            # up from 0.5 — punish misclassification more
+        cls=0.7,
         dfl=1.5,
 
-        # ── Transfer learning ─────────────────────────────────────────────────
-        freeze=5,           # freeze backbone for first 5 warmup epochs
+        # Backbone frozen during warmup to stabilize detection head initialization
+        freeze=5,
 
-        # ── Augmentation ──────────────────────────────────────────────────────
+        # Augmentation: underwater domain-specific + small-object strategies
         hsv_h=0.015,
         hsv_s=0.7,
-        hsv_v=0.45,         # slightly more brightness variation
+        hsv_v=0.45,
         flipud=0.3,
         fliplr=0.5,
-        degrees=10,         # NEW: rotation ±10° — fish at any orientation
-        scale=0.7,          # NEW: random scale 0.3x–1.7x — key for small fish
+        degrees=10,
+        scale=0.7,
         mosaic=1.0,
-        mixup=0.15,         # slightly more mixup
-        copy_paste=0.5,     # up from 0.3 — harder push for Ptereleotris/Ophiuroidea
-        erasing=0.4,        # NEW: random rectangular erasing — improves occlusion robustness
+        mixup=0.15,
+        copy_paste=0.5,
+        erasing=0.4,
 
-        # ── Logging ───────────────────────────────────────────────────────────
         verbose=True,
         plots=True,
     )
@@ -110,7 +107,7 @@ def main():
     map50   = results.results_dict.get("metrics/mAP50(B)",    "N/A")
     map5095 = results.results_dict.get("metrics/mAP50-95(B)", "N/A")
 
-    print("\n── v3 Training Complete ───────────────────────────────────────")
+    print("\n── Experiment 3 Complete ──────────────────────────────────────")
     print(f"Best weights: {MODELS_DIR}/fathomnet_v3/weights/best.pt")
     print(f"mAP@50:       {map50}")
     print(f"mAP@50-95:    {map5095}")
