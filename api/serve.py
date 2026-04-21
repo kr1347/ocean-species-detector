@@ -1,14 +1,6 @@
 """
-Step 4: FastAPI inference endpoint for marine species detection.
 
-You built FastAPI microservices at TCS — this is the same pattern applied
-to a computer vision model instead of a document ingestion pipeline.
 
-Why this matters for your resume:
-  Companies like Saildrone and Ocean Infinity don't just need models —
-  they need models that can run on vessel edge hardware or cloud APIs.
-  A working inference endpoint shows you can close the loop from
-  training to deployment.
 
 Run with:
   uvicorn api.serve:app --host 0.0.0.0 --port 8000 --reload
